@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 58 — The Thirsty Beaker 🐦</title>
+    <style>
+        :root {
+            --forest-dark: #1a4d2e;
+            --forest-mid: #4f6f52;
+            --forest-light: #86a788;
+            --water: #4a90a4;
+            --sand: #faf0d7;
+            --danger: #c0392b;
+            --gold: #f1c40f;
+            --text-dark: #2c3e50;
+            --sky: #87ceeb;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Georgia', serif; }
+        body { 
+            background: linear-gradient(180deg, var(--sky) 0%, var(--forest-light) 40%, var(--forest-dark) 100%); 
+            color: white; min-height: 100vh; overflow-x: hidden;
+        }
+        header { background: rgba(0,0,0,0.5); padding: 1.5rem; text-align: center; border-bottom: 3px solid var(--gold); position: sticky; top:0; z-index:100; }
+        h1 { font-size: 2rem; color: var(--gold); margin-bottom: 0.3rem; }
+        h2 { color: var(--sand); margin: 1.2rem 0 0.8rem; border-bottom: 2px solid var(--water); padding-bottom: 0.3rem; }
+        h3 { color: var(--sand); margin: 0.8rem 0; }
+        .subtitle { color: var(--forest-light); font-style: italic; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+        
+        /* === STORY INTRO === */
+        .story-box { 
+            background: rgba(0,0,0,0.4); padding: 2rem; border-radius: 15px; margin-bottom: 2rem; 
+            line-height: 1.8; border: 3px solid var(--forest-light); backdrop-filter: blur(5px);
+        }
+        .moral { 
+            margin-top: 1.5rem; padding: 1.2rem; background: rgba(241,196,15,0.15); 
+            border-left: 5px solid var(--gold); font-style: italic; border-radius: 0 8px 8px 0;
+        }
+        .start-btn { 
+            display:block; margin: 1.5rem auto; padding: 1rem 2.5rem; font-size: 1.3rem; 
+            background: var(--gold); color: var(--text-dark); border: none; border-radius: 10px; 
+            cursor: pointer; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .start-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--gold); }
+
+        /* === HUD === */
+        .hud { 
+            position: fixed; top: 110px; left: 1rem; right: 1rem; z-index: 90; 
+            display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: center; pointer-events:none;
+        }
+        .hud > div { 
+            background: rgba(0,0,0,0.6); padding: 0.6rem 1rem; border-radius: 10px; 
+            border: 2px solid rgba(255,255,255,0.2); min-width: 140px; pointer-events:auto;
+        }
+        .bar { height: 18px; background: rgba(0,0,0,0.4); border-radius: 9px; overflow: hidden; margin-top: 0.3rem; }
+        .bar-fill { height: 100%; transition: width 0.4s ease; border-radius: 9px; }
+        .health-fill { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+        .thirst-fill { background: linear-gradient(90deg, #3498db, #5dade2); }
+        .exp-fill { background: linear-gradient(90deg, #f39c12, #f7dc6f); }
+        .boss-fill { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+        
+        /* === GAME AREA === */
+        .game-area { 
+            position: relative; width: 100%; height: 450px; background: linear-gradient(180deg, #5a8f5a, #2d5a2d); 
+            border-radius: 15px; overflow: hidden; border: 4px solid var(--forest-light); margin: 1rem 0; cursor: crosshair;
+        }
+        .player { 
+            position: absolute; width: 36px; height: 36px; font-size: 28px; text-align: center; line-height: 36px; 
+            transform: translate(-50%, -50%); transition: left 0.5s ease, top 0.5s ease; z-index: 20;
+            filter: drop-shadow(0 0 8px rgba(255,255,0,0.6));
+        }
+        .water-source { 
+            position: absolute; width: 40px; height: 40px; font-size: 26px; text-align: center; line-height: 40px;
+            cursor: pointer; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        .npc { 
+            position: absolute; width: 40px; height: 40px; font-size: 26px; text-align: center; line-height: 40px;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .npc:hover { transform: scale(1.2); }
+        .boss { 
+            position: absolute; top: 20px; right: 20px; font-size: 45px; animation: float 3s infinite ease-in-out;
+        }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .tree { position: absolute; font-size: 35px; opacity: 0.7; pointer-events: none; }
+        
+        /* === PANELS === */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin: 1.5rem 0; }
+        .card { 
+            background: rgba(255,255,255,0.1); padding: 1.3rem; border-radius: 12px; 
+            border: 2px solid rgba(255,255,255,0.15); transition: transform 0.3s;
+        }
+        .card:hover { border-color: var(--gold); }
+        .btn { 
+            background: var(--water); color: white; border: none; padding: 0.7rem 1.2rem; 
+            border-radius: 7px; cursor: pointer; font-size: 1rem; margin: 0.3rem; transition: all 0.2s;
+        }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn.kind { background: #27ae60; }
+        .btn.proud { background: var(--danger); }
+        .btn.ultimate { background: var(--gold); color: var(--text-dark); font-weight: bold; }
+        .skill-node { 
+            display: inline-block; padding: 0.7rem 1rem; margin: 0.4rem; background: rgba(0,0,0,0.3); 
+            border-radius: 8px; border: 2px solid var(--forest-light); cursor: pointer; transition: all 0.3s;
+        }
+        .skill-node.unlocked { border-color: var(--gold); background: rgba(241,196,15,0.25); }
+        .quest { margin: 0.7rem 0; padding: 0.8rem; background: rgba(0,0,0,0.25); border-radius: 7px; }
+        .quest.completed { opacity: 0.5; text-decoration: line-through; }
+        .inventory-slot { 
+            display: inline-block; width: 65px; height: 65px; background: rgba(0,0,0,0.35); border: 2px solid var(--forest-light); 
+            border-radius: 8px; margin: 0.3rem; text-align: center; line-height: 65px; font-size: 1.6rem;
+        }
+        .dialogue-box { 
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); 
+            background: rgba(0,0,0,0.85); padding: 1.5rem 2rem; border-radius: 12px; 
+            border: 3px solid var(--gold); max-width: 500px; z-index: 200; display: none;
+        }
+        .notification { 
+            position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); 
+            background: rgba(0,0,0,0.75); padding: 0.8rem 1.5rem; border-radius: 8px; 
+            border: 2px solid var(--water); z-index: 150; transition: opacity 0.5s;
+        }
+        .hidden { display: none !important; }
+        .game-over-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); 
+            z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .victory { color: var(--gold); }
+        .defeat { color: var(--danger); }
+        footer { text-align: center; padding: 2rem; margin-top: 2rem; border-top: 2px solid var(--forest-light); }
+    </style>
+</head>
+<body>
+
+<!-- === STORY INTRO SCREEN === -->
+<div id="intro-screen">
+    <header>
+        <h1>📖 Chapter 58 — The Thirsty Beaker 🐦</h1>
+        <p class="subtitle">April 9, 2020 · Created by: Unable To Eat Vulnerable And "The Rages Band"</p>
+    </header>
+    <div class="container">
+        <div class="story-box">
+            <h2>📜 The Story</h2>
+            <p>Once upon a time there lived a forest. There was a bird named <strong>"The Thirsty Beaker"</strong> — proud, determined to find water all on its own, refusing help from anyone. After eating, it grew thirsty, but water could not be found. <em>"I can do this alone!"</em> it said. <em>"I don't need anyone!"</em></p>
+            <p><br>Days passed. Pride kept it from asking. The next morning — the other birds found it too late. The Thirsty Beaker was gone.</p>
+            <p><br>From that day on, the forest birds lived differently — <strong>sharing, caring, helping</strong>. They learned: no one survives alone.</p>
+            <div class="moral">
+                <strong>✨ Moral Lesson:</strong> Do not think only of yourself — that is pride. Before it's too late, care for others. Good karma comes to those who give care first. Be humble; think of others, and they will think of you. Caring for others is how they will care for you.
+            </div>
+            <button class="start-btn" onclick="startGame()">🎮 BEGIN BEAKER'S JOURNEY</button>
+        </div>
+    </div>
+</div>
+
+<!-- === MAIN GAME SCREEN === -->
+<div id="game-screen" class="hidden">
+    <header>
+        <h1>🐦 The Thirsty Beaker — The Game</h1>
+        <p class="subtitle">Click to move · Talk to birds · Find water · Defeat Pride!</p>
+    </header>
+
+    <!-- HUD -->
+    <div class="hud">
+        <div>
+            ❤️ Health<br>
+            <div class="bar"><div class="bar-fill health-fill" id="health-bar"></div></div>
+            <small id="health-text">100/100</small>
+        </div>
+        <div>
+            💧 Thirst<br>
+            <div class="bar"><div class="bar-fill thirst-fill" id="thirst-bar"></div></div>
+            <small id="thirst-text">100/100</small>
+        </div>
+        <div>
+            ⭐ Wisdom<br>
+            <div class="bar"><div class="bar-fill exp-fill" id="exp-bar"></div></div>
+            <small>Level <span id="level-text">1</span> — <span id="exp-text">0/100</span></small>
+        </div>
+        <div>
+            👹 Boss: Loneliness<br>
+            <div class="bar"><div class="bar-fill boss-fill" id="boss-bar"></div></div>
+            <small id="boss-text">100%</small>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top: 80px;">
+        <!-- GAME WORLD -->
+        <h2>🌲 The Forest</h2>
+        <div class="game-area" id="forest-map" onclick="movePlayer(event)">
+            <div class="tree" style="left:5%; top:20%;">🌳</div>
+            <div class="tree" style="left:88%; top:15%;">🌲</div>
+            <div class="tree" style="left:12%; top:70%;">🌳</div>
+            <div class="tree" style="left:78%; top:65%;">🌲</div>
+            <div class="tree" style="left:45%; top:80%;">🌳</div>
+            
+            <div class="player" id="beaker">🐦</div>
+            
+            <div class="water-source" style="left:18%; top:35%;" onclick="collectWater(event)">💧</div>
+            <div class="water-source" style="left:75%; top:55%;" onclick="collectWater(event)">💧</div>
+            
+            <div class="npc" style="left:40%; top:25%;" onclick="talkToNPC('owl')">🦉</div>
+            <div class="npc" style="left:60%; top:70%;" onclick="talkToNPC('sparrow')">🐤</div>
+            <div class="npc" style="left:85%; top:30%;" onclick="talkToNPC('flock')">🐦‍⬛</div>
+            
+            <div class="boss" id="boss">👹</div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="grid">
+            <div class="card">
+                <h3>🎯 Actions</h3>
+                <button class="btn kind" onclick="askHelp()">🤝 Ask for Help</button>
+                <button class="btn" onclick="shareWater()">💦 Share Water</button>
+                <button class="btn proud" onclick="refuseHelp()">🚫 Go Alone</button>
+                <button class="btn ultimate" onclick="callFlock()">🌟 Call the Flock!</button>
+            </div>
+            <div class="card">
+                <h3>📈 Status</h3>
+                <p><strong>Lesson Learned:</strong> <span id="lesson-text">Not yet...</span></p>
+                <p><strong>Friends Helped:</strong> <span id="friends-count">0</span>/3</p>
+                <p><strong>Water Found:</strong> <span id="water-count">0</span>/2</p>
+                <p><strong>Path Chosen:</strong> <span id="path-text">Choosing...</span></p>
+            </div>
+        </div>
+
+        <!-- SKILL TREE -->
+        <h2>🌿 Virtue Skill Tree</h2>
+        <div class="card">
+            <p>Unlock virtues to defeat Loneliness:</p>
+            <div class="skill-node" id="sk1" onclick="unlockSkill(1)">🤝 Sharing</div>
+            <div class="skill-node" id="sk2" onclick="unlockSkill(2)">💛 Caring</div>
+            <div class="skill-node" id="sk3" onclick="unlockSkill(3)">🙋 Asking Help</div>
+            <div class="skill-node" id="sk4" onclick="unlockSkill(4)">💜 Friendship</div>
+            <div class="skill-node" id="sk5" onclick="unlockSkill(5)">🕊️ Peaceful Life</div>
+        </div>
+
+        <!-- QUESTS -->
+        <h2>📋 Quests</h2>
+        <div class="quest" id="q1"><strong>Find Water</strong> — Locate water sources in the forest</div>
+        <div class="quest" id="q2"><strong>Make Friends</strong> — Talk to all birds and accept their help</div>
+        <div class="quest" id="q3"><strong>Share the Gift</strong> — Give water to others</div>
+        <div class="quest" id="q4"><strong>Defeat Loneliness</strong> — Unlock virtues and call the flock</div>
+
+        <!-- INVENTORY -->
+        <h2>🎒 Satchel</h2>
+        <div class="card">
+            <div class="inventory-slot" id="inv-water">💧</div>
+            <div class="inventory-slot" id="inv-friend" style="opacity:0.3;">🤝</div>
+            <div class="inventory-slot" id="inv-peace" style="opacity:0.3;">🕊️</div>
+            <div class="inventory-slot" style="opacity:0.3;">✨</div>
+            <div class="inventory-slot" style="opacity:0.3;">✨</div>
+        </div>
+
+        <!-- CONTROLS -->
+        <h2>🎮 How to Play</h2>
+        <div class="card">
+            <ul style="line-height: 1.8;">
+                <li>🖱️ <strong>Click the forest</strong> to move Beaker around</li>
+                <li>💧 <strong>Click water drops</strong> to drink and restore thirst</li>
+                <li>🦉 <strong>Click other birds</strong> to talk and accept help</li>
+                <li>🤝 <strong>Ask & share</strong> — this unlocks virtues and weakens the boss!</li>
+                <li>🚫 <strong>Refuse help</strong> — your thirst drops faster, boss grows stronger</li>
+                <li>🌟 <strong>Unlock 3+ virtues</strong> → Call the Flock to win!</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>"Caring others cares you too." — The Thirsty Beaker, April 9, 2020</p>
+        </footer>
+    </div>
+</div>
+
+<!-- DIALOGUE BOX -->
+<div class="dialogue-box" id="dialogue">
+    <p id="dialogue-text"></p>
+    <button class="btn" onclick="closeDialogue()">Continue</button>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notification" id="notification" style="opacity:0;"></div>
+
+<!-- GAME OVER SCREEN -->
+<div id="end-screen" class="game-over-screen hidden">
+    <h1 id="end-title"></h1>
+    <p id="end-message" style="font-size: 1.3rem; max-width: 600px; text-align: center; margin: 2rem;"></p>
+    <button class="start-btn" onclick="location.reload()">🔄 Play Again</button>
+</div>
+
+<script>
+// ========== GAME STATE ==========
+const game = {
+    health: 100,
+    thirst: 100,
+    exp: 0,
+    level: 1,
+    bossHP: 100,
+    friendsHelped: 0,
+    waterFound: 0,
+    skills: [false,false,false,false,false],
+    questComplete: [false,false,false,false],
+    isPlaying: false,
+    timer: null
+};
+
+// ========== START GAME ==========
+function startGame() {
+    document.getElementById('intro-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    game.isPlaying = true;
+    updateUI();
+    
+    // Auto-decay every 3 seconds
+    game.timer = setInterval(() => {
+        if (!game.isPlaying) return;
+        
+        game.thirst -= 2;
+        if (game.thirst <= 0) {
+            game.thirst = 0;
+            game.health -= 3;
+            game.bossHP -= 1;
+        }
+        updateUI();
+        
+        if (game.health <= 0) {
+            endGame(false);
+        }
+    }, 3000);
+}
+
+// ========== MOVEMENT ==========
+function movePlayer(e) {
+    if (!game.isPlaying) return;
+    const map = document.getElementById('forest-map');
+    const rect = map.getBoundingClientRect();
+    const x = Math.max(10, Math.min(rect.width - 10, e.clientX - rect.left));
+    const y = Math.max(10, Math.min(rect.height - 10, e.clientY - rect.top));
+    
+    const player = document.getElementById('beaker');
+    player.style.left = x + 'px';
+    player.style.top = y + 'px';
+}
+
+// ========== WATER ==========
+function collectWater(e) {
+    e.stopPropagation();
+    if (!game.isPlaying) return;
+    
+    game.waterFound++;
+    game.thirst = Math.min(100, game.thirst + 35);
+    game.exp += 10;
+    
+    if (game.waterFound >= 2) completeQuest(1);
+    showNotif("💧 Found water! Thirst reduced.");
+    updateUI();
+}
+
+// ========== NPCs ==========
+function talkToNPC(who) {
+    if (!game.isPlaying) return;
+    
+    const lines = {
+        owl: "🦉 Wise Owl: 'Pride closes doors; kindness opens them. Let me guide you to water!'",
+        sparrow: "🐤 Friendly Sparrow: 'I know every stream here! Drink with me — we share what we find.'",
+        flock: "🐦‍⬛ Flock Leader: 'One bird finds the way; together we travel far. Join us, Beaker!'"
+    };
+    
+    showDialog(lines[who]);
+    game.friendsHelped++;
+    game.exp += 15;
+    game.thirst = Math.min(100, game.thirst + 10);
+    
+    if (game.friendsHelped >= 1 && !game.skills[2]) unlockSkill(3);
+    if (game.friendsHelped >= 3) completeQuest(2);
+    if (game.friendsHelped >= 3 && !game.skills[3]) unlockSkill(4);
+    
+    document.getElementById('inv-friend').style.opacity = '1';
+    updateUI();
+}
+
+// ========== ACTIONS ==========
+function askHelp() {
+    if (!game.isPlaying) return;
+    showDialog("You asked for help! The forest birds are happy to guide you.");
+    game.thirst = Math.min(100, game.thirst + 25);
+    game.bossHP -= 15;
+    game.exp += 20;
+    if (!game.skills[2]) unlockSkill(3);
+    showNotif("🤝 Connection made! Loneliness weakened.");
+    updateUI();
+}
+
+function shareWater() {
+    if (!game.isPlaying) return;
+    if (game.waterFound < 1) {
+        showNotif("⚠️ Find water first to share!");
+        return;
+    }
+    showDialog("You gave water to a thirsty friend. It tasted sweeter than drinking alone.");
+    game.bossHP -= 20;
+    game.exp += 30;
+    if (!game.skills[0]) unlockSkill(1);
+    if (!game.skills[1]) unlockSkill(2);
+    completeQuest(3);
+    showNotif("💦 Shared! The forest smiles upon you.");
+    updateUI();
+}
+
+function refuseHelp() {
+    if (!game.isPlaying) return;
+    showDialog("'I do this alone,' you said. The birds fell silent. The forest felt colder...");
+    game.thirst -= 15;
+    game.bossHP += 15;
+    game.exp -= 5;
+    showNotif("🚫 Pride grows stronger.");
+    updateUI();
+}
+
+function callFlock() {
+    if (!game.isPlaying) return;
+    const unlocked = game.skills.filter(s => s).length;
+    if (unlocked < 3) {
+        showNotif(`⚠️ Need at least 3 virtues! You have ${unlocked}.`);
+        return;
+    }
+    
+    showDialog("🌟 THE FLOCK ARRIVES! Every bird comes — OWLS, SPARROWS, FINCHES — together as ONE! 'You are not alone!' they shout. Loneliness cannot stand against unity!");
+    game.bossHP = 0;
+    completeQuest(4);
+    unlockSkill(5);
+    document.getElementById('inv-peace').style.opacity = '1';
+    
+    setTimeout(() => endGame(true), 2500);
+}
+
+// ========== SKILLS ==========
+function unlockSkill(num) {
+    if (game.skills[num-1]) return;
+    game.skills[num-1] = true;
+    document.getElementById(`sk${num}`).classList.add('unlocked');
+    game.exp += 25;
+    game.bossHP -= 8;
+    
+    const names = ['Sharing','Caring','Asking Help','Friendship','Peaceful Life'];
+    showNotif(`✨ Virtue Unlocked: ${names[num-1]}!`);
+    updateUI();
+}
+
+// ========== QUESTS ==========
+function completeQuest(num) {
+    if (game.questComplete[num-1]) return;
+    game.questComplete[num-1] = true;
+    document.getElementById(`q${num}`).classList.add('completed');
+    game.exp += 50;
+}
+
+// ========== UI HELPERS ==========
+function showDialog(text) {
+    document.getElementById('dialogue-text').innerText = text;
+    document.getElementById('dialogue').style.display = 'block';
+}
+function closeDialogue() {
+    document.getElementById('dialogue').style.display = 'none';
+}
+function showNotif(msg) {
+    const n = document.getElementById('notification');
+    n.innerText = msg;
+    n.style.opacity = '1';
+    setTimeout(() => n.style.opacity = '0', 2500);
+}
+
+function updateUI() {
+    // Level up
+    if (game.exp >= 100) {
+        game.exp -= 100;
+        game.level++;
+        showNotif(`⭐ Level Up! Level ${game.level} — Wisdom grows!`);
+    }
+    
+    // Cap values
+    game.health = Math.max(0, Math.min(100, game.health));
+    game.thirst = Math.max(0, Math.min(100, game.thirst));
+    game.bossHP = Math.max(0, Math.min(100, game.bossHP));
+    
+    // Update bars
+    document.getElementById('health-bar').style.width = game.health + '%';
+    document.getElementById('health-text').innerText = `${Math.round(game.health)}/100`;
+    document.getElementById('thirst-bar').style.width = game.thirst + '%';
+    document.getElementById('thirst-text').innerText = `${Math.round(game.thirst)}/100`;
+    document.getElementById('exp-bar').style.width = game.exp + '%';
+    document.getElementById('level-text').innerText = game.level;
+    document.getElementById('exp-text').innerText = `${game.exp}/100`;
+    document.getElementById('boss-bar').style.width = game.bossHP + '%';
+    document.getElementById('boss-text').innerText = Math.round(game.bossHP) + '%';
+    
+    // Status
+    document.getElementById('friends-count').innerText = game.friendsHelped;
+    document.getElementById('water-count').innerText = game.waterFound;
+    
+    const unlocked = game.skills.filter(s => s).length;
+    if (unlocked === 0) {
+        document.getElementById('lesson-text').innerText = 'Still deciding...';
+        document.getElementById('path-text').innerText = 'At a crossroads';
+    } else if (unlocked < 3) {
+        document.getElementById('lesson-text').innerText = 'Learning to connect';
+        document.getElementById('path-text').innerText = 'Growing kinder';
+    } else {
+        document.getElementById('lesson-text').innerText = 'Unity is strength!';
+        document.getElementById('path-text').innerText = '🕊️ Path of Peace';
+    }
+}
+
+// ========== END GAME ==========
+function endGame(victory) {
+    game.isPlaying = false;
+    clearInterval(game.timer);
+    
+    const endScreen = document.getElementById('end-screen');
+    const title = document.getElementById('end-title');
+    const msg = document.getElementById('end-message');
+    
+    if (victory) {
+        title.innerText = '🎉 VICTORY! 🎉';
+        title.className = 'victory';
+        msg.innerHTML = `
+            The Thirsty Beaker learned the greatest lesson of all:<br><br>
+            <strong>"Caring for others is how they care for you."</strong><br><br>
+            Pride was defeated. Loneliness vanished. The birds live together — sharing water, stories, and life — forever.<br><br>
+            <em>Created by: Unable To Eat Vulnerable And "The Rages Band"<br>April 9, 2020</em>
+        `;
+    } else {
+        title.innerText = '💀 THE SAD ENDING 💀';
+        title.className = 'defeat';
+        msg.innerHTML = `
+            Beaker refused help until it was too late.<br><br>
+            Alone, thirsty, and proud — the path ended here.<br><br>
+            But remember: <strong>your story can be different.</strong><br>
+            Choose kindness. Ask for help. Share what you have.<br><br>
+            <em>"Caring others cares you too."</em>
+        `;
+    }
+    
+    endScreen.classList.remove('hidden');
+}
+</script>
+</body>
+</html>
